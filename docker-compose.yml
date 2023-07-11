@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  maintenance-service-db-postgres:
+    image: postgres:15.3
+    restart: always
+    ports:
+      - "5433:5433"
+    expose:
+      - "5433" # Publishes 5433 to other containers but NOT to host machine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: maintenance-service-db
+    command: -p 5433
+    volumes:
+      - maintenance-ticket-db:/var/lib/postgresql/data
+  progress-service-db-postgres:
+    image: postgres:15.3
+    restart: always
+    ports:
+      - "5434:5434"
+    expose:
+      - "5434"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: progress-service-db
+    command: -p 5434
+    volumes:
+      - progress-db:/var/lib/postgresql/data
+  equipment-service-db-mongo:
+    image: mongo:7.0.0-rc6-jammy
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: equipment-service
+    ports:
+      - '27017:27017'
+    volumes:
+      - equipment-service-db:/data/db
+volumes:
+  equipment-service-db:
+  maintenance-ticket-db:
+  progress-db:
