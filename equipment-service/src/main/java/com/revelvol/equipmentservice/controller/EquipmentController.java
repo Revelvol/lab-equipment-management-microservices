@@ -1,5 +1,6 @@
 package com.revelvol.equipmentservice.controller;
 
+import com.revelvol.equipmentservice.dto.EquipmentPatchRequest;
 import com.revelvol.equipmentservice.dto.EquipmentRequest;
 import com.revelvol.equipmentservice.dto.EquipmentResponse;
 import com.revelvol.equipmentservice.model.Equipment;
@@ -28,6 +29,26 @@ public class EquipmentController {
         return equipmentService.getAllEquipments();
     }
 
+    @GetMapping("/{equipment-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EquipmentResponse getEquipmentById(@PathVariable("equipment-id") String id) {
+        return equipmentService.getEquipmentById(id);
+    }
+
+
+    @PutMapping("/{equipment-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EquipmentResponse updateEquipment(@PathVariable("equipment-id") String id, @RequestBody EquipmentRequest productRequest) {
+
+        return equipmentService.updateEquipment(id, productRequest);
+    }
+
+    @PatchMapping("/{equipment-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EquipmentResponse patchEquipment(@PathVariable("equipment-id") String id, @RequestBody EquipmentPatchRequest productRequest) {
+
+        return equipmentService.patchEquipment(id, productRequest);
+    }
 
 
 }

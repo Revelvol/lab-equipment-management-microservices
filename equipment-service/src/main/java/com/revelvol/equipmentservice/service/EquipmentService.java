@@ -1,7 +1,9 @@
 package com.revelvol.equipmentservice.service;
 
+import com.revelvol.equipmentservice.dto.EquipmentPatchRequest;
 import com.revelvol.equipmentservice.dto.EquipmentRequest;
 import com.revelvol.equipmentservice.dto.EquipmentResponse;
+import com.revelvol.equipmentservice.exception.EquipmentNotFoundException;
 import com.revelvol.equipmentservice.model.Equipment;
 import com.revelvol.equipmentservice.repository.EquipmentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -49,5 +51,42 @@ public class EquipmentService {
                 .serialNumber(equipment.getType())
                 .build();
 
+    }
+
+    public EquipmentResponse getEquipmentById(String id) {
+        Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+        return mapToEquipmentResponse(equipment);
+    }
+
+    public EquipmentResponse updateEquipment(String id,EquipmentRequest productRequest) {
+        Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+        equipment.setName(productRequest.getName());
+        equipment.setDescription(productRequest.getDescription());
+        equipment.setType(productRequest.getType());
+        equipment.setManufacturer(productRequest.getManufacturer());
+        equipment.setSerialNumber(productRequest.getType());
+        equipmentRepository.save(equipment);
+        return mapToEquipmentResponse(equipment);
+    }
+
+    public EquipmentResponse patchEquipment(String id, EquipmentPatchRequest productRequest) {
+        Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+        if (productRequest.getName() != null) {
+            equipment.setName(productRequest.getName());
+        }
+        if (productRequest.getDescription() != null) {
+            equipment.setDescription(productRequest.getDescription());
+        }
+        if (productRequest.getType() != null) {
+            equipment.setType(productRequest.getType());
+        }
+        if (productRequest.getManufacturer() != null) {
+            equipment.setManufacturer(productRequest.getManufacturer());
+        }
+        if (productRequest.getSerialNumber() != null) {
+            equipment.setSerialNumber(productRequest.getType());
+        }
+        equipmentRepository.save(equipment);
+        return mapToEquipmentResponse(equipment);
     }
 }
