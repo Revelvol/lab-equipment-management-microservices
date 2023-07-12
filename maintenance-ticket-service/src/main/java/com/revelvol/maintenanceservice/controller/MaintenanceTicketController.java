@@ -1,6 +1,7 @@
 package com.revelvol.maintenanceservice.controller;
 
 import com.revelvol.maintenanceservice.dto.MaintenanceTicketRequest;
+import com.revelvol.maintenanceservice.dto.UpdateMaintenanceTicketRequest;
 import com.revelvol.maintenanceservice.model.MaintenanceTicket;
 import com.revelvol.maintenanceservice.service.MaintenanceTicketService;
 import jakarta.validation.Valid;
@@ -45,7 +46,7 @@ public class MaintenanceTicketController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping("/{maintenance-ticket-id}")
     public MaintenanceTicket updateMaintenanceTicket(@PathVariable("maintenance-ticket-id") Long maintenanceTicketId,
-                                                     @Valid @RequestBody MaintenanceTicketRequest maintenanceTicketRequest) {
+                                                     @Valid @RequestBody UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
         return maintenanceTicketService.updateMaintenanceTicketById(maintenanceTicketId,maintenanceTicketRequest);
     }
 
@@ -53,7 +54,7 @@ public class MaintenanceTicketController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping("/{maintenance-ticket-id}")
     public MaintenanceTicket patchMaintenanceTicket(@PathVariable("maintenance-ticket-id") Long maintenanceTicketId,
-                                                     @Valid @RequestBody MaintenanceTicketRequest maintenanceTicketRequest) {
+                                                     @Valid @RequestBody UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
         return maintenanceTicketService.patchMaintenanceTicketById(maintenanceTicketId,maintenanceTicketRequest);
     }
 

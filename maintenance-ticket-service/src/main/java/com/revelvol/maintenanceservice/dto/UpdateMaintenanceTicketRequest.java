@@ -1,9 +1,5 @@
 package com.revelvol.maintenanceservice.dto;
 
-
-import com.revelvol.maintenanceservice.model.MaintenanceEquipmentItem;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,10 +12,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MaintenanceTicketRequest {
-    @NotNull
+public class UpdateMaintenanceTicketRequest {
     private List<MaintenanceEquipmentItemsDto> maintenanceEquipmentItemsDto;
     private String description;
-    private Boolean isCompleted = Boolean.FALSE;
+    private Boolean isCompleted;
 
 }

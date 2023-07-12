@@ -2,6 +2,7 @@ package com.revelvol.maintenanceservice.service;
 
 import com.revelvol.maintenanceservice.dto.MaintenanceEquipmentItemsDto;
 import com.revelvol.maintenanceservice.dto.MaintenanceTicketRequest;
+import com.revelvol.maintenanceservice.dto.UpdateMaintenanceTicketRequest;
 import com.revelvol.maintenanceservice.exception.TicketNotFoundException;
 import com.revelvol.maintenanceservice.model.MaintenanceEquipmentItem;
 import com.revelvol.maintenanceservice.model.MaintenanceTicket;
@@ -65,7 +66,7 @@ public class MaintenanceTicketService {
         maintenanceTicketRepository.deleteById(maintenanceTicketId);
     }
 
-    public MaintenanceTicket updateMaintenanceTicketById(Long maintenanceTicketId, MaintenanceTicketRequest maintenanceTicketRequest) {
+    public MaintenanceTicket updateMaintenanceTicketById(Long maintenanceTicketId, UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
         MaintenanceTicket curMaintenanceTicket = maintenanceTicketRepository.findById(maintenanceTicketId).orElseThrow(() -> new TicketNotFoundException(
                 "Maintenance ticket not found"));
         curMaintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());
@@ -78,7 +79,7 @@ public class MaintenanceTicketService {
         return maintenanceTicketRepository.saveAndFlush(curMaintenanceTicket);
     }
 
-    public MaintenanceTicket patchMaintenanceTicketById(Long maintenanceTicketId, MaintenanceTicketRequest maintenanceTicketRequest) {
+    public MaintenanceTicket patchMaintenanceTicketById(Long maintenanceTicketId, UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
         MaintenanceTicket curMaintenanceTicket = maintenanceTicketRepository.findById(maintenanceTicketId).orElseThrow(() -> new TicketNotFoundException(
                 "Maintenance ticket not found"));
 
