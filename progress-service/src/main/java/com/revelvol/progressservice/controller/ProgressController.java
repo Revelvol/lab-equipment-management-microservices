@@ -28,4 +28,23 @@ public class ProgressController {
     public List<Progress> getAllProgresses(){
         return progressService.getAllProgreses();
     }
+
+
+    @GetMapping("/{progress-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Progress getProgressById(@PathVariable("progress-id") Long progressId){
+        return progressService.getProgressById(progressId);
+    }
+
+    @PutMapping("/{progress-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Progress updateProgress(@PathVariable("progress-id") Long progressId, @RequestBody ProgressRequest request){
+        return progressService.updateProgress(progressId, request);
+    }
+
+    @PatchMapping("/{progress-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Progress patchProgress(@PathVariable("progress-id") Long progressId, @RequestBody ProgressRequest request){
+        return progressService.patchProgress(progressId, request);
+    }
 }
