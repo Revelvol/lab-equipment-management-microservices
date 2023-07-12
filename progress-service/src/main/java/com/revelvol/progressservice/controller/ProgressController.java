@@ -1,6 +1,7 @@
 package com.revelvol.progressservice.controller;
 
 import com.revelvol.progressservice.dto.ProgressRequest;
+import com.revelvol.progressservice.dto.UpdateProgressRequest;
 import com.revelvol.progressservice.model.Progress;
 import com.revelvol.progressservice.service.ProgressService;
 import lombok.AllArgsConstructor;
@@ -38,13 +39,20 @@ public class ProgressController {
 
     @PutMapping("/{progress-id}")
     @ResponseStatus(HttpStatus.OK)
-    public Progress updateProgress(@PathVariable("progress-id") Long progressId, @RequestBody ProgressRequest request){
+    public Progress updateProgress(@PathVariable("progress-id") Long progressId, @RequestBody UpdateProgressRequest request){
         return progressService.updateProgress(progressId, request);
     }
 
     @PatchMapping("/{progress-id}")
     @ResponseStatus(HttpStatus.OK)
-    public Progress patchProgress(@PathVariable("progress-id") Long progressId, @RequestBody ProgressRequest request){
+    public Progress patchProgress(@PathVariable("progress-id") Long progressId, @RequestBody UpdateProgressRequest request){
         return progressService.patchProgress(progressId, request);
+    }
+
+    @DeleteMapping("/{progress-id}")
+    @ResponseStatus(HttpStatus.OK)
+    public String deleteProgress(@PathVariable("progress-id") Long progressId){
+        progressService.deleteProgress(progressId);
+        return "Progress "+progressId+" successfully deleted";
     }
 }

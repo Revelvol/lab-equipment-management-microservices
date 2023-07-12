@@ -1,9 +1,5 @@
 package com.revelvol.progressservice.dto;
 
-import com.revelvol.progressservice.model.ProgressDescription;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,10 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Data
-public class ProgressRequest {
-    @NotNull
+public class UpdateProgressRequest {
     private String skuCode;
-    private String status="ON_GOING";
+    private String status;
     private List<ProgressDescriptionDto> progressDescriptionDtoList;
 }
-

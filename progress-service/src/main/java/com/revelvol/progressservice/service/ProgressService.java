@@ -2,6 +2,7 @@ package com.revelvol.progressservice.service;
 
 import com.revelvol.progressservice.dto.ProgressDescriptionDto;
 import com.revelvol.progressservice.dto.ProgressRequest;
+import com.revelvol.progressservice.dto.UpdateProgressRequest;
 import com.revelvol.progressservice.exception.ProgressNotFoundException;
 import com.revelvol.progressservice.model.Progress;
 import com.revelvol.progressservice.model.ProgressDescription;
@@ -56,7 +57,7 @@ public class ProgressService {
                 "Progress not found"));
     }
 
-    public Progress updateProgress(Long progressId, ProgressRequest request) {
+    public Progress updateProgress(Long progressId, UpdateProgressRequest request) {
         Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
                 "Progress not found"));
 
@@ -70,7 +71,7 @@ public class ProgressService {
         return progressRepository.saveAndFlush(curProgress);
     }
 
-    public Progress patchProgress(Long progressId, ProgressRequest request) {
+    public Progress patchProgress(Long progressId, UpdateProgressRequest request) {
         Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
                 "Progress not found"));
 
@@ -88,5 +89,12 @@ public class ProgressService {
             curProgress.setStatus(request.getStatus());
         }
         return progressRepository.saveAndFlush(curProgress);
+    }
+
+    public void deleteProgress(Long progressId) {
+        Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
+                "Progress not found"));
+        progressRepository.delete(curProgress);
+        progressRepository.flush();
     }
 }
