@@ -28,7 +28,7 @@ public class EquipmentService {
                 .description(equipmentRequest.getDescription())
                 .type(equipmentRequest.getType())
                 .manufacturer(equipmentRequest.getManufacturer())
-                .serialNumber(equipmentRequest.getType())
+                .serialNumber(equipmentRequest.getSerialNumber())
                 .build();
 
         equipmentRepository.save(equipment);
@@ -48,7 +48,8 @@ public class EquipmentService {
                 .description(equipment.getDescription())
                 .type(equipment.getType())
                 .manufacturer(equipment.getManufacturer())
-                .serialNumber(equipment.getType())
+                .serialNumber(equipment.getSerialNumber())
+                .model(equipment.getModel())
                 .build();
 
     }
@@ -64,12 +65,14 @@ public class EquipmentService {
         equipment.setDescription(productRequest.getDescription());
         equipment.setType(productRequest.getType());
         equipment.setManufacturer(productRequest.getManufacturer());
-        equipment.setSerialNumber(productRequest.getType());
+        equipment.setSerialNumber(productRequest.getSerialNumber());
+        equipment.setModel(productRequest.getModel());
         equipmentRepository.save(equipment);
         return mapToEquipmentResponse(equipment);
     }
 
     public EquipmentResponse patchEquipment(String id, EquipmentPatchRequest productRequest) {
+
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
         if (productRequest.getName() != null) {
             equipment.setName(productRequest.getName());
@@ -84,9 +87,18 @@ public class EquipmentService {
             equipment.setManufacturer(productRequest.getManufacturer());
         }
         if (productRequest.getSerialNumber() != null) {
-            equipment.setSerialNumber(productRequest.getType());
+            equipment.setSerialNumber(productRequest.getSerialNumber());
+        }
+
+        if (productRequest.getModel() != null) {
+            equipment.setModel(productRequest.getModel());
         }
         equipmentRepository.save(equipment);
         return mapToEquipmentResponse(equipment);
+    }
+
+    public void deleteEquipment(String id) {
+        equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+        equipmentRepository.deleteById(id);
     }
 }

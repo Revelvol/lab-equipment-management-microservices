@@ -53,6 +53,6 @@ public class ProgressController {
     @ResponseStatus(HttpStatus.OK)
     public String deleteProgress(@PathVariable("progress-id") Long progressId){
         progressService.deleteProgress(progressId);
-        return "Progress "+progressId+" successfully deleted";
+        return "Progress-working-order-"+progressId+" successfully deleted";
     }
 }
