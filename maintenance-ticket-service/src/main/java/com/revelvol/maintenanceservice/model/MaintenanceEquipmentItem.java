@@ -1,5 +1,6 @@
 package com.revelvol.maintenanceservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,5 +25,19 @@ public class MaintenanceEquipmentItem {
 //    bidirectional relationship to refer to the maintenance ticket
     @ManyToOne
     @JoinColumn(name = "maintenance_ticket_id")
+    @JsonIgnore
     private MaintenanceTicket maintenanceTicket;
+
+    @Override
+    public String toString() {
+        return "MaintenanceEquipmentItem{" +
+                "id=" + id +
+                ", equipmentSkuCode='" + equipmentSkuCode + '\'' +
+                ", description='" + description + '\'' +
+                ", maintenanceType='" + maintenanceType + '\'' +
+                ", maintenanceStatus='" + maintenanceStatus + '\'' +
+                // Exclude the maintenanceTicket reference here
+                '}';
+    }
+
 }

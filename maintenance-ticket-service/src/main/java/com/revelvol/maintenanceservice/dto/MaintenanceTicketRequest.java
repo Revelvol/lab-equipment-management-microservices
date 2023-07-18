@@ -1,10 +1,8 @@
 package com.revelvol.maintenanceservice.dto;
 
 
-import com.revelvol.maintenanceservice.model.MaintenanceEquipmentItem;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class MaintenanceTicketRequest {
-    @NotNull
-    private List<MaintenanceEquipmentItemsDto> maintenanceEquipmentItemsDto;
+    @NotEmpty(message = "Maintenance Equipment Items List is required")
+    @Valid
+    private List<MaintenanceEquipmentItemsDto> maintenanceEquipmentItemsList;
     private String description;
     private Boolean isCompleted = Boolean.FALSE;
 
