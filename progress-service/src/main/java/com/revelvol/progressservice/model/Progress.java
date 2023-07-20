@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -17,9 +18,9 @@ public class Progress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String workingOrderId;
+    private String workingOrderId="WO_" + UUID.randomUUID();
     private String skuCode;
-    private String status;
+    private String status="IN PROGRESS";
     @OneToMany(cascade = CascadeType.ALL)
     private List<ProgressDescription> progressDescriptionList;
 }

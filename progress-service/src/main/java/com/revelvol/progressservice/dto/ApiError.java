@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
-public class ProgressDescriptionDto {
-    private Date progressDate;
-    private String description;
-    // todo private Image image;
+public class ApiError {
+    private Integer code; // kind of redundant karena http structure sudah bawa code
+    private String message;
+    private List<String> errorsDetails;
 }

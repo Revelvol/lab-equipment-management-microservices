@@ -57,14 +57,12 @@ class MaintenanceServiceApplicationTests {
 
     private MaintenanceTicketRepository maintenanceTicketRepository;
 
-    private MaintenanceTicketService maintenanceTicketService;
 
     @Autowired
-    public MaintenanceServiceApplicationTests(MockMvc mockMvc, ObjectMapper objectMapper, MaintenanceTicketRepository maintenanceTicketRepository, MaintenanceTicketService maintenanceTicketService) {
+    public MaintenanceServiceApplicationTests(MockMvc mockMvc, ObjectMapper objectMapper, MaintenanceTicketRepository maintenanceTicketRepository) {
         this.mockMvc = mockMvc;
         this.objectMapper = objectMapper;
         this.maintenanceTicketRepository = maintenanceTicketRepository;
-        this.maintenanceTicketService = maintenanceTicketService;
     }
 
     @AfterEach

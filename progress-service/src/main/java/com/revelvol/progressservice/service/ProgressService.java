@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -23,8 +24,6 @@ public class ProgressService {
     public void createProgress(ProgressRequest request) {
 
         Progress progress = new Progress();
-        //set random working order id as string
-        progress.setWorkingOrderId("WO_" + UUID.randomUUID());
         // sku code must already be exist since it was already checked by the maintenance ticket service
         progress.setSkuCode(request.getSkuCode());
         progress.setStatus(request.getStatus());
@@ -44,7 +43,7 @@ public class ProgressService {
         ProgressDescription progressDescription = new ProgressDescription();
         progressDescription.setDescription(dto.getDescription());
         //set the creation date for the ticket for ordering purpose
-        progressDescription.setProgressDate(new Date(System.currentTimeMillis()));
+        progressDescription.setProgressDate(dto.getProgressDate());
         return progressDescription;
     }
 
@@ -54,26 +53,24 @@ public class ProgressService {
 
     public Progress getProgressById(Long progressId) {
         return progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
-                "Progress not found"));
+                "Progress with id:"+progressId+" not found"));
     }
 
     public Progress updateProgress(Long progressId, UpdateProgressRequest request) {
-        Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
-                "Progress not found"));
+        Progress curProgress = getProgressById(progressId);
 
         //todo: decide whether to generate new working order id or not when the process is updated
         curProgress.setSkuCode(request.getSkuCode());
         curProgress.setProgressDescriptionList(request.getProgressDescriptionDtoList()
                 .stream()
                 .map(this::mapProgressDescriptionDtoToProgressDescription)
-                .toList());
+                .collect(Collectors.toList()));
         curProgress.setStatus(request.getStatus());
         return progressRepository.saveAndFlush(curProgress);
     }
 
     public Progress patchProgress(Long progressId, UpdateProgressRequest request) {
-        Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
-                "Progress not found"));
+        Progress curProgress = getProgressById(progressId);
 
         //todo: decide whether to generate new working order id or not when the process is updated
         if (request.getSkuCode()!=null) {
@@ -83,7 +80,7 @@ public class ProgressService {
             curProgress.setProgressDescriptionList(request.getProgressDescriptionDtoList()
                     .stream()
                     .map(this::mapProgressDescriptionDtoToProgressDescription)
-                    .toList());
+                    .collect(Collectors.toList()));
         }
         if (request.getStatus()!=null) {
             curProgress.setStatus(request.getStatus());
@@ -92,8 +89,7 @@ public class ProgressService {
     }
 
     public void deleteProgress(Long progressId) {
-        Progress curProgress = progressRepository.findById(progressId).orElseThrow(() -> new ProgressNotFoundException(
-                "Progress not found"));
+        Progress curProgress = getProgressById(progressId);
         progressRepository.delete(curProgress);
         progressRepository.flush();
     }

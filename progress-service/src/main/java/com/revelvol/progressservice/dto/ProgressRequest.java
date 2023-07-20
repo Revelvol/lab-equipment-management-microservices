@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @Data
 public class ProgressRequest {
-    @NotNull
+    @NotNull(message = "Sku code is required")
     private String skuCode;
     private String status="ON_GOING";
     private List<ProgressDescriptionDto> progressDescriptionDtoList;

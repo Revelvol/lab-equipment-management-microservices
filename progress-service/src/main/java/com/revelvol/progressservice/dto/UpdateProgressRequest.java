@@ -1,5 +1,6 @@
 package com.revelvol.progressservice.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 @Builder
 @Data
 public class UpdateProgressRequest {
+    @NotNull(message = "Sku code is required")
     private String skuCode;
     private String status;
     private List<ProgressDescriptionDto> progressDescriptionDtoList;

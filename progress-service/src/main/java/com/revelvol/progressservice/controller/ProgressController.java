@@ -4,6 +4,7 @@ import com.revelvol.progressservice.dto.ProgressRequest;
 import com.revelvol.progressservice.dto.UpdateProgressRequest;
 import com.revelvol.progressservice.model.Progress;
 import com.revelvol.progressservice.service.ProgressService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class ProgressController {
     private final ProgressService progressService;
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String createProgress(@RequestBody ProgressRequest request) {
+    public String createProgress(@RequestBody @Valid ProgressRequest request) {
         progressService.createProgress(request);
 
         return "Progress successfuly created";
@@ -39,7 +40,7 @@ public class ProgressController {
 
     @PutMapping("/{progress-id}")
     @ResponseStatus(HttpStatus.OK)
-    public Progress updateProgress(@PathVariable("progress-id") Long progressId, @RequestBody UpdateProgressRequest request){
+    public Progress updateProgress(@PathVariable("progress-id") Long progressId, @RequestBody @Valid UpdateProgressRequest request){
         return progressService.updateProgress(progressId, request);
     }
 
