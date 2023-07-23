@@ -24,13 +24,13 @@ public class EquipmentService {
 
     public void createEquipment(EquipmentRequest equipmentRequest){
         Equipment equipment= Equipment.builder()
-                .name(equipmentRequest.getName())
+                .skuCode(equipmentRequest.getSkuCode())
                 .description(equipmentRequest.getDescription())
                 .type(equipmentRequest.getType())
                 .manufacturer(equipmentRequest.getManufacturer())
                 .serialNumber(equipmentRequest.getSerialNumber())
                 .build();
-
+        // todo handle error handling duplicate sku code here
         equipmentRepository.save(equipment);
         log.info("Equipment {} is saved", equipment.getId());
     }
@@ -44,7 +44,7 @@ public class EquipmentService {
     private EquipmentResponse mapToEquipmentResponse(Equipment equipment) {
         return EquipmentResponse.builder()
                 .id(equipment.getId())
-                .name(equipment.getName())
+                .skuCode(equipment.getSkuCode())
                 .description(equipment.getDescription())
                 .type(equipment.getType())
                 .manufacturer(equipment.getManufacturer())
@@ -61,7 +61,7 @@ public class EquipmentService {
 
     public EquipmentResponse updateEquipment(String id,EquipmentRequest productRequest) {
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
-        equipment.setName(productRequest.getName());
+        equipment.setSkuCode(productRequest.getSkuCode());
         equipment.setDescription(productRequest.getDescription());
         equipment.setType(productRequest.getType());
         equipment.setManufacturer(productRequest.getManufacturer());
@@ -75,7 +75,7 @@ public class EquipmentService {
 
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
         if (productRequest.getName() != null) {
-            equipment.setName(productRequest.getName());
+            equipment.setSkuCode(productRequest.getName());
         }
         if (productRequest.getDescription() != null) {
             equipment.setDescription(productRequest.getDescription());

@@ -1,6 +1,5 @@
 package com.revelvol.equipmentservice;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.revelvol.equipmentservice.dto.ApiError;
 import com.revelvol.equipmentservice.dto.EquipmentRequest;
@@ -15,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -61,7 +59,7 @@ class EquipmentServiceApplicationTests {
     }
 
     private EquipmentRequest getEquipmentRequest() {
-        return EquipmentRequest.builder().name("pH meter").description(
+        return EquipmentRequest.builder().skuCode("pH meter").description(
                 "pH probe to analyze pH to food and non food object").type("handHeld").manufacturer("Eutech").serialNumber(
                 "12345").model("test model").build();
 
@@ -74,7 +72,7 @@ class EquipmentServiceApplicationTests {
     }
 
     private EquipmentRequest getPutEquipmentRequest() {
-        return EquipmentRequest.builder().name("pH meter updated").description("pH probe to analyze pH to non food").type(
+        return EquipmentRequest.builder().skuCode("pH meter updated").description("pH probe to analyze pH to non food").type(
                 "stand in machine").manufacturer("Sigmatech").serialNumber("54321").model("test model updated").build();
 
     }
@@ -86,7 +84,7 @@ class EquipmentServiceApplicationTests {
     }
 
     private Equipment getEquipment() {
-        return Equipment.builder().name("pH meter").description("pH probe to analyze pH to food and non food object").type(
+        return Equipment.builder().skuCode("pH meter").description("pH probe to analyze pH to food and non food object").type(
                 "handHeld").manufacturer("Eutech").serialNumber("12345").model("test model").build();
     }
 
@@ -118,10 +116,29 @@ class EquipmentServiceApplicationTests {
         String responseBody = result.getResponse().getContentAsString();
         ApiError response = objectMapper.readValue(responseBody, ApiError.class);
         List<String> expectedErrors = new ArrayList<>();
-        expectedErrors.add("name must not be null");
+        expectedErrors.add("skuCode must not be null");
         Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
         Assertions.assertEquals(expectedErrors, response.getErrorsDetails());
         Assertions.assertEquals(0, equipmentRepository.findAll().size());
+    }
+
+    @Test
+    void shouldNotCreateEquipmentDuplicateSkuCode() throws Exception {
+
+        EquipmentRequest equipmentRequest = getEquipmentRequest();
+
+        String jsonRequest = objectMapper.writeValueAsString(equipmentRequest);
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/equipments").contentType(MediaType.APPLICATION_JSON).content(
+                jsonRequest)).andExpect(status().isCreated());
+
+        Assertions.assertEquals(1, equipmentRepository.findAll().size());
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/equipments").contentType(MediaType.APPLICATION_JSON).content(
+                jsonRequest)).andExpect(status().is4xxClientError());
+
+        Assertions.assertEquals(1, equipmentRepository.findAll().size());
+
+
+
     }
 
     @Test
@@ -131,7 +148,7 @@ class EquipmentServiceApplicationTests {
         String responseBody = result.getResponse().getContentAsString();
         EquipmentResponse[] equipmentResponses = objectMapper.readValue(responseBody, EquipmentResponse[].class);
         Assertions.assertEquals(1, equipmentResponses.length);
-        Assertions.assertEquals("pH meter", equipmentResponses[0].getName());
+        Assertions.assertEquals("pH meter", equipmentResponses[0].getSkuCode());
         Assertions.assertEquals("pH probe to analyze pH to food and non food object",
                 equipmentResponses[0].getDescription());
         Assertions.assertEquals(1, equipmentRepository.findAll().size());
@@ -180,7 +197,7 @@ class EquipmentServiceApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpectAll(status().isOk(),
-                        jsonPath("$.name").value("pH meter updated"),
+                        jsonPath("$.skuCode").value("pH meter updated"),
                         jsonPath("$.description").value("pH probe to analyze pH to non food"),
                         jsonPath("$.type").value("stand in machine"),
                         jsonPath("$.manufacturer").value("Sigmatech"),
@@ -208,7 +225,7 @@ class EquipmentServiceApplicationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpectAll(status().isOk(),
-                        jsonPath("$.name").value("pH meter"),// this name is not changing
+                        jsonPath("$.skuCode").value("pH meter"),// this name is not changing
                         jsonPath("$.description").value("pH probe to analyze pH to non food"),
                         jsonPath("$.type").value("stand in machine"),
                         jsonPath("$.manufacturer").value("Sigmatech"),

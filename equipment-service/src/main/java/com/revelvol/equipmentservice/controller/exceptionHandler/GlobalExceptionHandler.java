@@ -2,6 +2,7 @@ package com.revelvol.equipmentservice.controller.exceptionHandler;
 
 import com.revelvol.equipmentservice.dto.ApiError;
 import com.revelvol.equipmentservice.exception.EquipmentNotFoundException;
+import jakarta.servlet.ServletException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,8 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({EquipmentNotFoundException.class, MethodArgumentNotValidException.class, MissingServletRequestParameterException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({EquipmentNotFoundException.class, MethodArgumentNotValidException.class, MissingServletRequestParameterException.class, HttpMessageNotReadableException.class
+    , ServletException.class})
     public final ResponseEntity<ApiError> handleException(Exception ex, WebRequest request) throws Throwable {
         HttpHeaders headers = new HttpHeaders();
 
@@ -37,11 +39,28 @@ public class GlobalExceptionHandler {
         } else if (ex instanceof HttpMessageNotReadableException subEx) {
             HttpStatus status = HttpStatus.BAD_REQUEST;
             return handleHttpMessageNotReadableException(subEx, headers, status, request);
+        } else if (ex instanceof ServletException subEx) {
+            HttpStatus status = HttpStatus.BAD_REQUEST;
+            return handleServletException(subEx, headers, status, request);
         }
 
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         return handleExceptionInternal(ex, null, headers, status, request);
+    }
+
+    private ResponseEntity<ApiError> handleServletException(ServletException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ApiError apiError = new ApiError();
+        apiError.setCode(status.value());
+        apiError.setMessage("Invalid request body");
+
+        List<String> errorsDetail = new ArrayList<>();
+        errorsDetail.add(ex.getMessage());
+        apiError.setErrorsDetails(errorsDetail);
+
+
+        return handleExceptionInternal(ex, apiError, headers, status, request);
+
     }
 
 

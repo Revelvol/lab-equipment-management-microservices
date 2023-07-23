@@ -7,6 +7,7 @@ import com.revelvol.maintenanceservice.model.MaintenanceTicket;
 import com.revelvol.maintenanceservice.repository.MaintenanceTicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,22 +15,36 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // jadi ga perlu autowired
+@RequiredArgsConstructor // no need to autowired thanks to lombok
+//do i need transactional
 public class MaintenanceTicketService {
 
     private final MaintenanceTicketRepository maintenanceTicketRepository;
-
+    private final WebClient  webClient;
 
     private MaintenanceEquipmentItem mapRequestEquipmentDtoToMaintenanceEquipmentItem(MaintenanceEquipmentItemsDto maintenanceEquipmentItemsDto, MaintenanceTicket parentTicket) {
         // map the list of MaintenanceEquipment item dto object to maintenance equipment item object and set the parent ticket to the maintenance equipment item
         MaintenanceEquipmentItem maintenanceEquipmentItem = new MaintenanceEquipmentItem();
         maintenanceEquipmentItem.setDescription(maintenanceEquipmentItemsDto.getDescription());
         maintenanceEquipmentItem.setMaintenanceType(maintenanceEquipmentItemsDto.getMaintenanceType());
-        //todo implement service communication to the equipment service where it check whether the sku exist or not
         maintenanceEquipmentItem.setEquipmentSkuCode(maintenanceEquipmentItemsDto.getEquipmentSkuCode());
         maintenanceEquipmentItem.setMaintenanceStatus(maintenanceEquipmentItemsDto.getMaintenanceStatus());
         maintenanceEquipmentItem.setMaintenanceTicket(parentTicket);
-        return maintenanceEquipmentItem;
+
+        // call the equipment service to check whether the sku exist or not
+        // todo implement batch processing
+        Boolean isEquipmentExist = webClient.get()
+                .uri("http://localhost:27017/api/v1/equipments/"+maintenanceEquipmentItemsDto.getEquipmentSkuCode())
+                .retrieve()
+                .bodyToMono(Boolean.class) // only expect one object return
+                .block();// add the syn request
+
+        if (Boolean.TRUE.equals(isEquipmentExist)){
+            return maintenanceEquipmentItem;
+        } else {
+            throw new IllegalArgumentException("Equipment sku code not found");
+        }
+
     }
 
     private MaintenanceTicketResponse mapMaintenanceTicket(MaintenanceTicket maintenanceTicket) {
@@ -99,8 +114,6 @@ public class MaintenanceTicketService {
     }
 
     public void deleteMaintenanceTicketById(Long maintenanceTicketId) {
-
-        // todo check whether this need to find the ticket first to not cause 500 error ticket not found
         maintenanceTicketRepository.findById(maintenanceTicketId).orElseThrow(() -> new TicketNotFoundException(
                 "Maintenance ticket not found"));
         maintenanceTicketRepository.deleteById(maintenanceTicketId);
@@ -141,7 +154,6 @@ public class MaintenanceTicketService {
             curMaintenanceTicket.setIsCompleted(maintenanceTicketRequest.getIsCompleted());
         }
 
-        // todo dto not updating
         if (maintenanceTicketRequest.getMaintenanceEquipmentItemsList()!= null) {
             List<MaintenanceEquipmentItem>  maintenanceEquipmentItemList =  maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
                     dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, curMaintenanceTicket)).collect(
