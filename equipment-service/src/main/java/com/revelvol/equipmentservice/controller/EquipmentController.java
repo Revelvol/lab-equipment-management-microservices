@@ -38,15 +38,15 @@ public class EquipmentController {
     @GetMapping("/sku/{sku-code}")
     @ResponseStatus(HttpStatus.OK)
     public Boolean findEquipmentExistsBySkuCode(@PathVariable("sku-code") String skuCode) {
-        Equipment equipment = equipmentService.findEquipmentBySkuCode(skuCode);
-
-        if (equipment != null) {
-            return true;
-        }
-
-        return false;
+        return equipmentService.isEquipmentExistsBySkuCode(skuCode);
     }
 
+    //batch processing Sku Code in query params
+    @GetMapping("/sku")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean findEquipmentExistsBySkuCodeBatch(@RequestParam List<String> skuCodes) {
+        return equipmentService.isEquipmentExistsBySkuCodeBatch(skuCodes);
+    }
 
 
     @PutMapping("/{equipment-id}")

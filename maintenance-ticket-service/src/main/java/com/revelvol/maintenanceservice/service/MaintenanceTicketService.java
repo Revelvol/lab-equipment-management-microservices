@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class MaintenanceTicketService {
 
     private final MaintenanceTicketRepository maintenanceTicketRepository;
-    private final WebClient  webClient;
+    private final WebClient webClient;
 
     private MaintenanceEquipmentItem mapRequestEquipmentDtoToMaintenanceEquipmentItem(MaintenanceEquipmentItemsDto maintenanceEquipmentItemsDto, MaintenanceTicket parentTicket) {
         // map the list of MaintenanceEquipment item dto object to maintenance equipment item object and set the parent ticket to the maintenance equipment item
@@ -30,25 +30,21 @@ public class MaintenanceTicketService {
         maintenanceEquipmentItem.setEquipmentSkuCode(maintenanceEquipmentItemsDto.getEquipmentSkuCode());
         maintenanceEquipmentItem.setMaintenanceStatus(maintenanceEquipmentItemsDto.getMaintenanceStatus());
         maintenanceEquipmentItem.setMaintenanceTicket(parentTicket);
-
-        // call the equipment service to check whether the sku exist or not
-        // todo implement batch processing
-        Boolean isEquipmentExist = webClient.get()
-                .uri("http://localhost:27017/api/v1/equipments/"+maintenanceEquipmentItemsDto.getEquipmentSkuCode())
-                .retrieve()
-                .bodyToMono(Boolean.class) // only expect one object return
-                .block();// add the syn request
-
-        if (Boolean.TRUE.equals(isEquipmentExist)){
-            return maintenanceEquipmentItem;
-        } else {
-            throw new IllegalArgumentException("Equipment sku code not found");
-        }
+        return maintenanceEquipmentItem;
 
     }
 
-    private MaintenanceTicketResponse mapMaintenanceTicket(MaintenanceTicket maintenanceTicket) {
+    private Boolean batchCheckIsSkuValid(List<String> skuCodeList) {
+        // Check all List of SkuCode is valid and exist on the equipment service
+        return webClient.get()
+                .uri("http://localhost:8081/equipments/sku", uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodeList).build())
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .block();
+    }
 
+    private MaintenanceTicketResponse mapMaintenanceTicket(MaintenanceTicket maintenanceTicket) {
+        // map maintenance ticket object to maintenance ticket response object
         MaintenanceTicketResponse maintenanceTicketResponse = new MaintenanceTicketResponse();
         maintenanceTicketResponse.setId(maintenanceTicket.getId());
         maintenanceTicketResponse.setTicketNumber(maintenanceTicket.getTicketNumber());
@@ -61,7 +57,15 @@ public class MaintenanceTicketService {
     }
 
     private List<MaintenanceEquipmentItemsDtoResponse> mapMaintenanceEquipmentItemsToMaintenanceEquipmentsItemsDto(List<MaintenanceEquipmentItem> equipmentItems) {
+        // map equipment items list to the DTO for the request
+
         List<MaintenanceEquipmentItemsDtoResponse> maintenanceEquipmentItemsDtoList = new ArrayList<>();
+
+        List<String> skuCodeList = equipmentItems.stream().map(MaintenanceEquipmentItem::getEquipmentSkuCode).toList();
+        if (!batchCheckIsSkuValid(skuCodeList)) {
+            // check if the request sku is valid first
+            throw new IllegalArgumentException("One or more sku code is invalid");
+        }
         for (MaintenanceEquipmentItem item : equipmentItems) {
             MaintenanceEquipmentItemsDtoResponse maintenanceEquipmentItemsDto = new MaintenanceEquipmentItemsDtoResponse();
             maintenanceEquipmentItemsDto.setId(item.getId());
@@ -154,15 +158,14 @@ public class MaintenanceTicketService {
             curMaintenanceTicket.setIsCompleted(maintenanceTicketRequest.getIsCompleted());
         }
 
-        if (maintenanceTicketRequest.getMaintenanceEquipmentItemsList()!= null) {
-            List<MaintenanceEquipmentItem>  maintenanceEquipmentItemList =  maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
+        if (maintenanceTicketRequest.getMaintenanceEquipmentItemsList() != null) {
+            List<MaintenanceEquipmentItem> maintenanceEquipmentItemList = maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
                     dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, curMaintenanceTicket)).collect(
                     Collectors.toList());
             curMaintenanceTicket.setMaintenanceEquipmentItems(maintenanceEquipmentItemList);
 
 
         }
-
 
 
         MaintenanceTicket updatedMaintenanceTicket = maintenanceTicketRepository.save(curMaintenanceTicket);

@@ -103,7 +103,23 @@ public class EquipmentService {
     }
 
     public Equipment findEquipmentBySkuCode(String skuCode) {
-
+        // return equipment or throw and error not found exception
         return equipmentRepository.findEquipmentBySkuCode(skuCode).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+    }
+
+    public Boolean isEquipmentExistsBySkuCode(String skuCode) {
+        // return true or false according to the sku code given in the request path variable
+        return equipmentRepository.findEquipmentBySkuCode(skuCode).isPresent();
+    }
+
+    public Boolean isEquipmentExistsBySkuCodeBatch(List<String> skuCodes) {
+        // return true or false according to the sku codes given in the request params
+        // todo consider responding more information of which sku codes is invalid
+        for (String skuCode : skuCodes) {
+            if (!isEquipmentExistsBySkuCode(skuCode)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

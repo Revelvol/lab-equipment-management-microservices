@@ -321,10 +321,10 @@ class EquipmentServiceApplicationTests {
     void shouldReturnFalseEquipmentNotFound() throws Exception {
 
         MvcResult resultIndividual = mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/equipments/sku/iphone_5" )).andExpect(
-                status().isNotFound()).andReturn();
+                status().isOk()).andReturn();
 
-        ApiError response = objectMapper.readValue(resultIndividual.getResponse().getContentAsString(), ApiError.class);
+        Boolean isExist = objectMapper.readValue(resultIndividual.getResponse().getContentAsString(), Boolean.class);
 
-        Assertions.assertEquals(response.getMessage(), "Not Found");
+        Assertions.assertFalse(isExist);
     }
 }
