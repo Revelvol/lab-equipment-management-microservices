@@ -3,6 +3,7 @@ package com.revelvol.equipmentservice.controller;
 import com.revelvol.equipmentservice.dto.EquipmentPatchRequest;
 import com.revelvol.equipmentservice.dto.EquipmentRequest;
 import com.revelvol.equipmentservice.dto.EquipmentResponse;
+import com.revelvol.equipmentservice.model.Equipment;
 import com.revelvol.equipmentservice.service.EquipmentService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,19 @@ public class EquipmentController {
     public EquipmentResponse getEquipmentById(@PathVariable("equipment-id") String id) {
         return equipmentService.getEquipmentById(id);
     }
+
+    @GetMapping("/sku/{sku-code}")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean findEquipmentExistsBySkuCode(@PathVariable("sku-code") String skuCode) {
+        Equipment equipment = equipmentService.findEquipmentBySkuCode(skuCode);
+
+        if (equipment != null) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 
     @PutMapping("/{equipment-id}")

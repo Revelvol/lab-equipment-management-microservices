@@ -22,8 +22,8 @@ public class EquipmentService {
         this.equipmentRepository = equipmentRepository;
     }
 
-    public void createEquipment(EquipmentRequest equipmentRequest){
-        Equipment equipment= Equipment.builder()
+    public void createEquipment(EquipmentRequest equipmentRequest) {
+        Equipment equipment = Equipment.builder()
                 .skuCode(equipmentRequest.getSkuCode())
                 .description(equipmentRequest.getDescription())
                 .type(equipmentRequest.getType())
@@ -36,9 +36,9 @@ public class EquipmentService {
     }
 
     public List<EquipmentResponse> getAllEquipments() {
-       List<Equipment> equipments = equipmentRepository.findAll();
+        List<Equipment> equipments = equipmentRepository.findAll();
 
-       return equipments.stream().map(this::mapToEquipmentResponse).toList();
+        return equipments.stream().map(this::mapToEquipmentResponse).toList();
     }
 
     private EquipmentResponse mapToEquipmentResponse(Equipment equipment) {
@@ -59,7 +59,7 @@ public class EquipmentService {
         return mapToEquipmentResponse(equipment);
     }
 
-    public EquipmentResponse updateEquipment(String id,EquipmentRequest productRequest) {
+    public EquipmentResponse updateEquipment(String id, EquipmentRequest productRequest) {
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
         equipment.setSkuCode(productRequest.getSkuCode());
         equipment.setDescription(productRequest.getDescription());
@@ -100,5 +100,10 @@ public class EquipmentService {
     public void deleteEquipment(String id) {
         equipmentRepository.findById(id).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
         equipmentRepository.deleteById(id);
+    }
+
+    public Equipment findEquipmentBySkuCode(String skuCode) {
+
+        return equipmentRepository.findEquipmentBySkuCode(skuCode).orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
     }
 }

@@ -299,4 +299,32 @@ class EquipmentServiceApplicationTests {
 
         Assertions.assertEquals(0, equipmentRepository.findAll().size());
     }
+
+    @Test
+    void shouldReturnTrueEquipmentFoundBySku() throws Exception {
+        EquipmentRequest equipmentRequest = getEquipmentRequest();
+
+        String jsonRequest = objectMapper.writeValueAsString(equipmentRequest);
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/equipments").contentType(MediaType.APPLICATION_JSON).content(
+                jsonRequest)).andExpect(status().isCreated());
+
+        Assertions.assertEquals(1, equipmentRepository.findAll().size());
+        MvcResult resultIndividual = mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/equipments/sku/" + equipmentRequest.getSkuCode())).andExpect(
+                status().isOk()).andReturn();
+
+        Boolean isExist = objectMapper.readValue(resultIndividual.getResponse().getContentAsString(), Boolean.class);
+
+        Assertions.assertTrue(isExist);
+    }
+
+    @Test
+    void shouldReturnFalseEquipmentNotFound() throws Exception {
+
+        MvcResult resultIndividual = mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/equipments/sku/iphone_5" )).andExpect(
+                status().isNotFound()).andReturn();
+
+        ApiError response = objectMapper.readValue(resultIndividual.getResponse().getContentAsString(), ApiError.class);
+
+        Assertions.assertEquals(response.getMessage(), "Not Found");
+    }
 }
