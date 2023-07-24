@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,10 +33,20 @@ public class MaintenanceTicketService {
 
     }
 
+    private void checkEquipmentsItemListSkuCodeIsValid(List<MaintenanceEquipmentItem> equipmentItems){
+
+        List<String> skuCodeList = equipmentItems.stream().map(MaintenanceEquipmentItem::getEquipmentSkuCode).toList();
+        if (!batchCheckIsSkuValid(skuCodeList)) {
+            // check if the request sku is valid first
+            throw new IllegalArgumentException("One or more sku code is invalid");
+        }
+    }
+
     private Boolean batchCheckIsSkuValid(List<String> skuCodeList) {
         // Check all List of SkuCode is valid and exist on the equipment service
         return webClient.get()
-                .uri("http://localhost:8081/equipments/sku", uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodeList).build())
+                .uri("http://localhost:8080/api/v1/equipments/sku",
+                        uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodeList).build())
                 .retrieve()
                 .bodyToMono(Boolean.class)
                 .block();
@@ -61,11 +70,6 @@ public class MaintenanceTicketService {
 
         List<MaintenanceEquipmentItemsDtoResponse> maintenanceEquipmentItemsDtoList = new ArrayList<>();
 
-        List<String> skuCodeList = equipmentItems.stream().map(MaintenanceEquipmentItem::getEquipmentSkuCode).toList();
-        if (!batchCheckIsSkuValid(skuCodeList)) {
-            // check if the request sku is valid first
-            throw new IllegalArgumentException("One or more sku code is invalid");
-        }
         for (MaintenanceEquipmentItem item : equipmentItems) {
             MaintenanceEquipmentItemsDtoResponse maintenanceEquipmentItemsDto = new MaintenanceEquipmentItemsDtoResponse();
             maintenanceEquipmentItemsDto.setId(item.getId());
@@ -87,9 +91,16 @@ public class MaintenanceTicketService {
     public void createMaintenanceTicket(MaintenanceTicketRequest maintenanceTicketRequest) {
         MaintenanceTicket maintenanceTicket = new MaintenanceTicket();
         maintenanceTicket.setIsCompleted(maintenanceTicketRequest.getIsCompleted());
+
+
+
         // map individual maintenance equipments item dto to create individual maintenance equipment items
         List<MaintenanceEquipmentItem> maintenanceEquipmentItemList = maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
                 dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, maintenanceTicket)).toList();
+
+        //check the list of maintenance equipment item have valid sku code
+        checkEquipmentsItemListSkuCodeIsValid(maintenanceEquipmentItemList);
+
         //set each maintenance Equipment item to the maintenance ticket
         maintenanceTicket.setMaintenanceEquipmentItems(maintenanceEquipmentItemList);
         maintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());
@@ -132,6 +143,7 @@ public class MaintenanceTicketService {
             List<MaintenanceEquipmentItem> maintenanceEquipmentItemList = maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
                     dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, curMaintenanceTicket)).collect(
                     Collectors.toList());
+            checkEquipmentsItemListSkuCodeIsValid(maintenanceEquipmentItemList);
             curMaintenanceTicket.setMaintenanceEquipmentItems(maintenanceEquipmentItemList);
         } else {
             curMaintenanceTicket.setMaintenanceEquipmentItems(null);
@@ -162,6 +174,7 @@ public class MaintenanceTicketService {
             List<MaintenanceEquipmentItem> maintenanceEquipmentItemList = maintenanceTicketRequest.getMaintenanceEquipmentItemsList().stream().map(
                     dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, curMaintenanceTicket)).collect(
                     Collectors.toList());
+            checkEquipmentsItemListSkuCodeIsValid(maintenanceEquipmentItemList);
             curMaintenanceTicket.setMaintenanceEquipmentItems(maintenanceEquipmentItemList);
 
 
