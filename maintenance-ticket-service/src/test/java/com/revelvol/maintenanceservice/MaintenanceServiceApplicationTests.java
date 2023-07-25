@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @AutoConfigureMockMvc
 class MaintenanceServiceApplicationTests {
@@ -257,7 +257,7 @@ class MaintenanceServiceApplicationTests {
         maintenanceTicket.setIsCompleted(Boolean.TRUE);
 
         MaintenanceEquipmentItem equipmentItem = new MaintenanceEquipmentItem();
-        equipmentItem.setEquipmentSkuCode("E12346");
+        equipmentItem.setEquipmentSkuCode("E12345"); // should not update sku code
         equipmentItem.setDescription("Air conditioner");
         //equipmentItem.setMaintenanceType("Preventive"); check this  to see whether this will become null
         equipmentItem.setMaintenanceStatus("FINISHED");
@@ -297,7 +297,7 @@ class MaintenanceServiceApplicationTests {
         //equipments list validation
         Assertions.assertEquals(null, actualTicket.getMaintenanceEquipmentItems().get(0).getMaintenanceType());
         Assertions.assertEquals("FINISHED", actualTicket.getMaintenanceEquipmentItems().get(0).getMaintenanceStatus());
-        Assertions.assertEquals("E12346", actualTicket.getMaintenanceEquipmentItems().get(0).getEquipmentSkuCode());
+        Assertions.assertEquals("E12345", actualTicket.getMaintenanceEquipmentItems().get(0).getEquipmentSkuCode()); // sku cannot be changed
         Assertions.assertEquals("Air conditioner", actualTicket.getMaintenanceEquipmentItems().get(0).getDescription());
     }
 
@@ -346,7 +346,7 @@ class MaintenanceServiceApplicationTests {
         maintenanceTicket.setIsCompleted(Boolean.TRUE);
 
         MaintenanceEquipmentItem equipmentItem = new MaintenanceEquipmentItem();
-        equipmentItem.setEquipmentSkuCode("E123456"); // beda
+        equipmentItem.setEquipmentSkuCode("E12345");
         equipmentItem.setDescription("Air conditioner");
         equipmentItem.setMaintenanceType("Preventive");
         equipmentItem.setMaintenanceStatus("FINISHED"); // beda
@@ -386,7 +386,7 @@ class MaintenanceServiceApplicationTests {
         Assertions.assertNotEquals(existingTicket.getMaintenanceEquipmentItems().get(0).getId(), actualTicket.getMaintenanceEquipmentItems().get(0).getId()); // not same
         Assertions.assertEquals(existingTicket.getMaintenanceEquipmentItems().get(0).getMaintenanceType(), actualTicket.getMaintenanceEquipmentItems().get(0).getMaintenanceType()); //same
         Assertions.assertEquals("FINISHED", actualTicket.getMaintenanceEquipmentItems().get(0).getMaintenanceStatus()); //different
-        Assertions.assertEquals("E123456", actualTicket.getMaintenanceEquipmentItems().get(0).getEquipmentSkuCode());// same
+        Assertions.assertEquals("E12345", actualTicket.getMaintenanceEquipmentItems().get(0).getEquipmentSkuCode()); // unchange
     }
 
     @Test

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class MaintenanceTicketService {
 
     private final MaintenanceTicketRepository maintenanceTicketRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     private MaintenanceEquipmentItem mapRequestEquipmentDtoToMaintenanceEquipmentItem(MaintenanceEquipmentItemsDto maintenanceEquipmentItemsDto, MaintenanceTicket parentTicket) {
         // map the list of MaintenanceEquipment item dto object to maintenance equipment item object and set the parent ticket to the maintenance equipment item
@@ -44,8 +45,9 @@ public class MaintenanceTicketService {
 
     private Boolean batchCheckIsSkuValid(List<String> skuCodeList) {
         // Check all List of SkuCode is valid and exist on the equipment service
-        return webClient.get()
-                .uri("http://localhost:8080/api/v1/equipments/sku",
+        return webClientBuilder.build()
+                .get()
+                .uri("http://equipment-service/api/v1/equipments/sku",
                         uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodeList).build())
                 .retrieve()
                 .bodyToMono(Boolean.class)
