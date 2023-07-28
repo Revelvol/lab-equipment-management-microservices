@@ -37,7 +37,24 @@ services:
       - '27017:27017'
     volumes:
       - equipment-service-db:/data/db
+
+  authentication-service-db-postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: authentication-server-db
+    volumes:
+      - auth-server-db:/var/lib/postgresql/data
+    ports:
+      - "5435:5434"
+    expose:
+      - "5434"
+    command: -p 5434
+
 volumes:
   equipment-service-db:
   maintenance-ticket-db:
   progress-db:
+  auth-server-db:
