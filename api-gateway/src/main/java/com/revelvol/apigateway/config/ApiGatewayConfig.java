@@ -19,15 +19,26 @@ public class ApiGatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("equipment-service", r -> r.path("/api/v1/equipments")
+                        .filters(f -> {
+                            f.filter( authenticationFilter);
+                            return f;
+                        })
                         .uri("lb://equipment-service"))
                 .route("maintenance-ticket-service", r -> r.path("/api/v1/maintenance-ticket")
+                        .filters(f -> {
+                            f.filter( authenticationFilter);
+                            return f;
+                        })
                         .uri("lb://maintenance-ticket-service"))
                 .route("progress-service", r -> r.path("/api/v1/progresses")
+                        .filters(f -> {
+                            f.filter( authenticationFilter);
+                            return f;
+                        })
                         .uri("lb://progress-service"))
                 .route("discovery-server", r -> r.path("/eureka/web")
                         .filters(f -> {
                             f.setPath("/");
-                            f.filter( authenticationFilter);
                             return f;
                         })
                         .uri("http://localhost:8761/"))
