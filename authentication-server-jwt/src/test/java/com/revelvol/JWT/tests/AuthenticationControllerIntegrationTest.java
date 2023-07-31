@@ -42,6 +42,7 @@ public class AuthenticationControllerIntegrationTest {
     private int port;
     private String registerUrl;
     private String authenticateUrl;
+    private String getUserUrl;
 
     @Autowired
     private TestH2UserRepository testH2UserRepository;
@@ -63,6 +64,9 @@ public class AuthenticationControllerIntegrationTest {
         String baseUrl = "http://localhost";
         registerUrl = baseUrl.concat(":").concat(String.valueOf(port)).concat("/api/v1/auth/register");
         authenticateUrl = baseUrl.concat(":").concat(String.valueOf(port)).concat("/api/v1/auth/authenticate");
+        getUserUrl = baseUrl.concat(":").concat(String.valueOf(port)).concat("/api/v1/auth");
+
+
         MockitoAnnotations.openMocks(this);
 
         //mock the jwt service
@@ -285,15 +289,17 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateValidUser() {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest("test@gmail.com", "123456778");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // authenticate the user and get new  token
-        ApiResponse authenticationResponse = restTemplate.postForObject(authenticateUrl, authenticationRequest, ApiResponse.class);
+        ApiResponse authenticationResponse = restTemplate.postForObject(authenticateUrl,
+                authenticationRequest,
+                ApiResponse.class);
 
         Assertions.assertEquals(1, testH2UserRepository.findAll().size());
 
@@ -304,11 +310,11 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateInvalidPassword() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest("test@gmail.com", "178a");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -320,9 +326,8 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
@@ -337,11 +342,11 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserInvalidEmail() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest("test123@gmail.com", "123456778");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -353,9 +358,8 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
@@ -369,11 +373,11 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserNotValidEmail() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest("test123", "123456778");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -385,9 +389,8 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
@@ -407,12 +410,12 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserNoEmail() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setPassword("123456778");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -424,21 +427,18 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
             Assertions.assertEquals("the request is not valid", responseMap.getMessage());
 
-            HashMap<String,Object> expectedResponseData = new HashMap<>();
+            HashMap<String, Object> expectedResponseData = new HashMap<>();
 
             expectedResponseData.put("email", "must not be null");
 
             Assertions.assertEquals(expectedResponseData, responseMap.getData());
-
-
 
 
         }
@@ -448,12 +448,12 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserNoPassword() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setEmail("test@gmail.com");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -465,14 +465,13 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
             Assertions.assertEquals("the request is not valid", responseMap.getMessage());
-            Map<String,Object> expectedResponseData = new HashMap<>();
+            Map<String, Object> expectedResponseData = new HashMap<>();
             expectedResponseData.put("password", "must not be null");
 
             Assertions.assertEquals(expectedResponseData, responseMap.getData());
@@ -487,11 +486,11 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserNoEmailAndNoPassword() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -503,9 +502,8 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
@@ -514,10 +512,8 @@ public class AuthenticationControllerIntegrationTest {
             HashMap<String, Object> expectedResponseData = new HashMap<>();
 
             expectedResponseData.put("email", "must not be null");
-            expectedResponseData.put("password","must not be null");
+            expectedResponseData.put("password", "must not be null");
             Assertions.assertEquals(expectedResponseData, responseMap.getData());
-
-
 
 
         }
@@ -527,12 +523,12 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testAuthenticateUserInvalidEmailAndNoPassword() throws JsonProcessingException {
-        RegisterRequest registerRequest= new RegisterRequest("test@gmail.com", "123456778");
+        RegisterRequest registerRequest = new RegisterRequest("test@gmail.com", "123456778");
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setEmail("test123");
 
         // register the user
-        ApiResponse registerResponse=  restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
+        ApiResponse registerResponse = restTemplate.postForObject(registerUrl, registerRequest, ApiResponse.class);
 
 
         // this should return error
@@ -544,9 +540,8 @@ public class AuthenticationControllerIntegrationTest {
             String responseBody = e.getResponseBodyAsString();
 
 
-
             ApiResponse responseMap = objectMapper.readValue(responseBody, ApiResponse.class);
-            System.out.println("response "+ responseMap.toString());
+            System.out.println("response " + responseMap.toString());
 
 
             Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), responseMap.getStatusCode());
@@ -556,13 +551,48 @@ public class AuthenticationControllerIntegrationTest {
             Map<String, Object> expectedResponseData = new HashMap<>();
 
             expectedResponseData.put("password", "must not be null");
-            expectedResponseData.put("email","must be a well-formed email address");
+            expectedResponseData.put("email", "must be a well-formed email address");
 
-            Assertions.assertEquals(expectedResponseData,responseMap.getData());
+            Assertions.assertEquals(expectedResponseData, responseMap.getData());
 
 
         }
 
         Assertions.assertEquals(1, testH2UserRepository.findAll().size());
+    }
+
+    @Test
+    public void testGetRegisteredUser() {
+
+        User user = new User("test123@gmail.com", "12345457647", new HashSet<>());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<User> requestEntity = new HttpEntity<>(user, headers);
+
+        ResponseEntity<ApiResponse> response = restTemplate.exchange(this.registerUrl,
+                HttpMethod.POST,
+                requestEntity,
+                ApiResponse.class);
+
+
+        //perform validation to the response entity
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(1, testH2UserRepository.findAll().size());
+
+        String token = response.getBody().getData().get("token").toString();
+
+        HttpHeaders headers2 = new HttpHeaders();
+        headers2.setBearerAuth(token);
+        HttpEntity<User> requestEntity2 = new HttpEntity<>(headers2);
+        ResponseEntity<ApiResponse> userResponse = restTemplate.exchange(this.getUserUrl,
+                HttpMethod.GET,
+                requestEntity2,
+                ApiResponse.class);
+
+        Assertions.assertEquals(HttpStatus.OK, userResponse.getStatusCode());
+        Assertions.assertEquals(user.getEmail(), userResponse.getBody().getData().get("email"));
+
+
     }
 }

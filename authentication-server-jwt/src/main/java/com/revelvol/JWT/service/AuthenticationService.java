@@ -11,6 +11,7 @@ import com.revelvol.JWT.request.AuthenticationRequest;
 import com.revelvol.JWT.request.RegisterRequest;
 import com.revelvol.JWT.response.ApiResponse;
 import com.revelvol.JWT.response.AuthenticationResponse;
+import com.revelvol.JWT.response.UserResponse;
 import com.revelvol.JWT.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,7 +54,7 @@ public class AuthenticationService {
 
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         // perform logic to see if the user already exist
-        if (user != null){
+        if (user != null) {
             throw new UserAlreadyExistsException("User already exist");
         } else {
             user = new User(request.getEmail(), passwordEncoder.encode(request.getPassword()), roles);
@@ -67,7 +68,7 @@ public class AuthenticationService {
             Map<String, Object> claims = getClaimsFromUser(user);
 
             // the connection are added automatically for many to many
-            var jwtToken = jwtService.generateToken(claims,user);
+            var jwtToken = jwtService.generateToken(claims, user);
 
             AuthenticationResponse authResponse = new AuthenticationResponse(HttpStatus.OK.value(),
                     "registration success",
@@ -96,7 +97,7 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UserNotFoundException(
                 "User does not exist"));
 
-        if (!passwordEncoder.matches(request.getPassword(),  user.getPassword())){
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException("Invalid Password");
         }
 
@@ -114,4 +115,22 @@ public class AuthenticationService {
     }
 
 
+    public ApiResponse getUserData(String token) {
+        String email = jwtService.extractUsername(token);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(
+                "User does not exist"));
+        if (jwtService.isTokenValid(token,user)) {
+            UserResponse response= new UserResponse(200,"success");
+            response.setEmail(user.getEmail());
+            response.setId(user.getId());
+            response.setUserRoles(user.getUserRoles());
+            return response;
+        }
+        else {
+            throw new UserNotFoundException("User Does not exist");
+        }
+    }
 }
+
+
+

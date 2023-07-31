@@ -49,7 +49,6 @@ public class UserInformationController {
     public ResponseEntity<ApiResponse> getUserInformation(@RequestHeader HttpHeaders headers) {
         String authHeader = headers.getFirst("Authorization");
         String token = authHeader.substring(7);
-        // todo fix this logic by adding id to the jsot token
         ApiResponse userInformation = null;
         try {
             userInformation = userInformationService.getUserInformation(token);
