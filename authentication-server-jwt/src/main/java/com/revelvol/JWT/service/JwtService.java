@@ -37,7 +37,7 @@ public class JwtService {
             Map<String, Object> extraClaims,
             UserDetails userDetails // take user detail from spring framework
     ) {
-        System.out.println(SECRET_KEY);
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)

@@ -88,12 +88,21 @@ public class AuthenticationFilter implements GatewayFilter {
                         // Token is valid, map the response body to UserResponse and create ResponseEntity<UserResponse>.
                         return response.bodyToMono(UserResponse.class)
                                 .map(userResponse -> ResponseEntity.ok(userResponse));
-                    } else {
+                    } else if (response.statusCode().is4xxClientError()) {
                         // Map the response body to ApiError and create ResponseEntity<ApiError>.
                         return response.bodyToMono(ApiError.class)
                                 .map(apiError -> ResponseEntity.status(response.statusCode()).body(apiError));
+                    } else {
+                        // the server is having 5xx server error, triger circuit breaker
+                        return response.createException().flatMap(
+                                error -> Mono.error(new RuntimeException("error has happened"))
+                        );
                     }
                 });
     }
+
+
+
+
 }
 

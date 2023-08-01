@@ -6,6 +6,7 @@ import com.revelvol.maintenanceservice.dto.MaintenanceTicketResponse;
 import com.revelvol.maintenanceservice.dto.UpdateMaintenanceTicketRequest;
 import com.revelvol.maintenanceservice.service.MaintenanceTicketService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class MaintenanceTicketController {
     //add circuit breaker here because this make call with another service
     @CircuitBreaker(name = "equipment", fallbackMethod = "fallbackCreateMaintenanceTicket")
     @TimeLimiter(name = "equipment") // karna ada timeout jadi call mesti made into asynchronus
+    @Retry(name = "equipment")
     public CompletableFuture<String> createMaintenanceTicket(@Valid @RequestBody MaintenanceTicketRequest maintenanceTicketRequest) {
 
         return CompletableFuture.supplyAsync(() -> maintenanceTicketService.createMaintenanceTicket(
@@ -61,6 +63,7 @@ public class MaintenanceTicketController {
     @ResponseStatus(HttpStatus.OK)
     @CircuitBreaker(name = "equipment", fallbackMethod = "fallbackUpdateMaintenanceTicket")
     @TimeLimiter(name = "equipment")
+    @Retry(name = "equipment")
     public CompletableFuture<MaintenanceTicketResponse> updateMaintenanceTicket(@PathVariable("maintenance-ticket-id") Long maintenanceTicketId,
                                                                                 @Valid @RequestBody MaintenanceTicketRequest maintenanceTicketRequest) {
 
@@ -88,6 +91,7 @@ public class MaintenanceTicketController {
     @ResponseStatus(HttpStatus.OK)
     @CircuitBreaker(name = "equipment", fallbackMethod = "fallbackPatchMaintenanceTicket")
     @TimeLimiter(name = "equipment")
+    @Retry(name = "equipment")
     public CompletableFuture<MaintenanceTicketResponse> patchMaintenanceTicket(@PathVariable("maintenance-ticket-id") Long maintenanceTicketId,
                                                                                @Valid @RequestBody UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
         return CompletableFuture.supplyAsync(() -> maintenanceTicketService.patchMaintenanceTicketById(

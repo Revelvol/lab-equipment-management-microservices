@@ -44,7 +44,7 @@ public class ApiGatewayConfig {
                         .uri("http://localhost:8761/"))
                 .route("discovery-server-static", r -> r.path("/eureka/**")
                         .uri("http://localhost:8761/"))
-                .route("authentication-server", r -> r.path("/api/v1/auth")
+                .route("authentication-server", r -> r.path("/api/v1/auth/**")
                         //.filters(f -> f.setPath("/"))
                         .uri("lb://authentication-server"))
                 .build();
