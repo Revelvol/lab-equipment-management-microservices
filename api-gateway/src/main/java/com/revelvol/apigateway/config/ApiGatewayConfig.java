@@ -18,19 +18,19 @@ public class ApiGatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("equipment-service", r -> r.path("/api/v1/equipments")
+                .route("equipment-service", r -> r.path("/api/v1/equipments/**")
                         .filters(f -> {
                             f.filter( authenticationFilter);
                             return f;
                         })
                         .uri("lb://equipment-service"))
-                .route("maintenance-ticket-service", r -> r.path("/api/v1/maintenance-ticket")
+                .route("maintenance-ticket-service", r -> r.path("/api/v1/maintenance-ticket/**")
                         .filters(f -> {
                             f.filter( authenticationFilter);
                             return f;
                         })
                         .uri("lb://maintenance-ticket-service"))
-                .route("progress-service", r -> r.path("/api/v1/progresses")
+                .route("progress-service", r -> r.path("/api/v1/progresses/**")
                         .filters(f -> {
                             f.filter( authenticationFilter);
                             return f;

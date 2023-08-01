@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +33,7 @@ public class MaintenanceTicketService {
 
     }
 
-    private void checkEquipmentsItemListSkuCodeIsValid(List<MaintenanceEquipmentItem> equipmentItems){
+    private void checkEquipmentsItemListSkuCodeIsValid(List<MaintenanceEquipmentItem> equipmentItems) {
 
         List<String> skuCodeList = equipmentItems.stream().map(MaintenanceEquipmentItem::getEquipmentSkuCode).toList();
         if (!batchCheckIsSkuValid(skuCodeList)) {
@@ -90,10 +89,9 @@ public class MaintenanceTicketService {
     }
 
 
-    public void createMaintenanceTicket(MaintenanceTicketRequest maintenanceTicketRequest) {
+    public String createMaintenanceTicket(MaintenanceTicketRequest maintenanceTicketRequest) {
         MaintenanceTicket maintenanceTicket = new MaintenanceTicket();
         maintenanceTicket.setIsCompleted(maintenanceTicketRequest.getIsCompleted());
-
 
 
         // map individual maintenance equipments item dto to create individual maintenance equipment items
@@ -108,6 +106,7 @@ public class MaintenanceTicketService {
         maintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());
 
         maintenanceTicketRepository.save(maintenanceTicket);
+        return "maintenance ticket " + maintenanceTicket.getTicketNumber() + " saved sucessfully";
 
     }
 
