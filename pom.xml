@@ -21,6 +21,7 @@
         <module>discovery-server</module>
         <module>api-gateway</module>
         <module>authentication-server-jwt</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

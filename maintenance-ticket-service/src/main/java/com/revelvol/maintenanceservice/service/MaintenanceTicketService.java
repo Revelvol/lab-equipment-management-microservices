@@ -1,11 +1,14 @@
 package com.revelvol.maintenanceservice.service;
 
 import com.revelvol.maintenanceservice.dto.*;
+import com.revelvol.maintenanceservice.event.MaintenanceTicketPlacedEventProducer;
 import com.revelvol.maintenanceservice.exception.TicketNotFoundException;
 import com.revelvol.maintenanceservice.model.MaintenanceEquipmentItem;
 import com.revelvol.maintenanceservice.model.MaintenanceTicket;
 import com.revelvol.maintenanceservice.repository.MaintenanceTicketRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -15,11 +18,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // no need to autowired thanks to lombok
+@Slf4j
+
 //do i need transactional
 public class MaintenanceTicketService {
 
     private final MaintenanceTicketRepository maintenanceTicketRepository;
     private final WebClient.Builder webClientBuilder;
+    private final KafkaTemplate<String, MaintenanceTicketPlacedEventProducer> kafkaTemplate;
 
     private MaintenanceEquipmentItem mapRequestEquipmentDtoToMaintenanceEquipmentItem(MaintenanceEquipmentItemsDto maintenanceEquipmentItemsDto, MaintenanceTicket parentTicket) {
         // map the list of MaintenanceEquipment item dto object to maintenance equipment item object and set the parent ticket to the maintenance equipment item
@@ -106,6 +112,10 @@ public class MaintenanceTicketService {
         maintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());
 
         maintenanceTicketRepository.save(maintenanceTicket);
+        //send the maintenance ticket to the kafka topic asynchronusly
+        kafkaTemplate.send("notificationTopic", new MaintenanceTicketPlacedEventProducer(maintenanceTicket.getId(), maintenanceTicket.getTicketNumber()));
+
+        log.info("maintenance ticker sucessfuly created: "+maintenanceTicket.getTicketNumber());
         return "maintenance ticket " + maintenanceTicket.getTicketNumber() + " saved sucessfully";
 
     }
