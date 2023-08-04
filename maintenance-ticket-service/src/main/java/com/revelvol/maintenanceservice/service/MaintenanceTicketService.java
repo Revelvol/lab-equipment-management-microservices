@@ -1,26 +1,32 @@
 package com.revelvol.maintenanceservice.service;
 
 import com.revelvol.maintenanceservice.dto.*;
+import com.revelvol.maintenanceservice.event.MaintenanceTicketPlacedEventProducer;
 import com.revelvol.maintenanceservice.exception.TicketNotFoundException;
 import com.revelvol.maintenanceservice.model.MaintenanceEquipmentItem;
 import com.revelvol.maintenanceservice.model.MaintenanceTicket;
 import com.revelvol.maintenanceservice.repository.MaintenanceTicketRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // no need to autowired thanks to lombok
+@Slf4j
+
 //do i need transactional
 public class MaintenanceTicketService {
 
     private final MaintenanceTicketRepository maintenanceTicketRepository;
     private final WebClient.Builder webClientBuilder;
+    private final KafkaTemplate<String, MaintenanceTicketPlacedEventProducer> kafkaTemplate;
+
 
     private MaintenanceEquipmentItem mapRequestEquipmentDtoToMaintenanceEquipmentItem(MaintenanceEquipmentItemsDto maintenanceEquipmentItemsDto, MaintenanceTicket parentTicket) {
         // map the list of MaintenanceEquipment item dto object to maintenance equipment item object and set the parent ticket to the maintenance equipment item
@@ -30,11 +36,12 @@ public class MaintenanceTicketService {
         maintenanceEquipmentItem.setEquipmentSkuCode(maintenanceEquipmentItemsDto.getEquipmentSkuCode());
         maintenanceEquipmentItem.setMaintenanceStatus(maintenanceEquipmentItemsDto.getMaintenanceStatus());
         maintenanceEquipmentItem.setMaintenanceTicket(parentTicket);
+
         return maintenanceEquipmentItem;
 
     }
 
-    private void checkEquipmentsItemListSkuCodeIsValid(List<MaintenanceEquipmentItem> equipmentItems){
+    private void checkEquipmentsItemListSkuCodeIsValid(List<MaintenanceEquipmentItem> equipmentItems) {
 
         List<String> skuCodeList = equipmentItems.stream().map(MaintenanceEquipmentItem::getEquipmentSkuCode).toList();
         if (!batchCheckIsSkuValid(skuCodeList)) {
@@ -44,14 +51,14 @@ public class MaintenanceTicketService {
     }
 
     private Boolean batchCheckIsSkuValid(List<String> skuCodeList) {
-        // Check all List of SkuCode is valid and exist on the equipment service
-        return webClientBuilder.build()
-                .get()
-                .uri("http://equipment-service/api/v1/equipments/sku",
-                        uriBuilder -> uriBuilder.queryParam("skuCodes", skuCodeList).build())
-                .retrieve()
-                .bodyToMono(Boolean.class)
-                .block();
+
+
+        // Check tall List of SkuCode is valid and exist on the equipment service
+        return webClientBuilder.build().get().uri("http://equipment-service/api/v1/equipments/sku",
+                uriBuilder -> uriBuilder.queryParam("skuCodes",
+                        skuCodeList).build()).retrieve().bodyToMono(Boolean.class).block();
+
+
     }
 
     private MaintenanceTicketResponse mapMaintenanceTicket(MaintenanceTicket maintenanceTicket) {
@@ -90,10 +97,9 @@ public class MaintenanceTicketService {
     }
 
 
-    public void createMaintenanceTicket(MaintenanceTicketRequest maintenanceTicketRequest) {
+    public String createMaintenanceTicket(MaintenanceTicketRequest maintenanceTicketRequest) {
         MaintenanceTicket maintenanceTicket = new MaintenanceTicket();
         maintenanceTicket.setIsCompleted(maintenanceTicketRequest.getIsCompleted());
-
 
 
         // map individual maintenance equipments item dto to create individual maintenance equipment items
@@ -108,6 +114,14 @@ public class MaintenanceTicketService {
         maintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());
 
         maintenanceTicketRepository.save(maintenanceTicket);
+        //send the maintenance ticket to the kafka topic asynchronusly
+        kafkaTemplate.send("notificationTopic",
+                new MaintenanceTicketPlacedEventProducer(maintenanceTicket.getId(),
+                        maintenanceTicket.getTicketNumber()));
+
+
+        log.info("maintenance ticker sucessfuly created: " + maintenanceTicket.getTicketNumber());
+        return "maintenance ticket " + maintenanceTicket.getTicketNumber() + " saved sucessfully";
 
     }
 
@@ -124,8 +138,7 @@ public class MaintenanceTicketService {
     }
 
     public MaintenanceTicketResponse getMaintenanceTicketById(Long maintenanceTicketId) {
-        MaintenanceTicket maintenanceTicket = getMaintenanceTicketFromId(
-                maintenanceTicketId);
+        MaintenanceTicket maintenanceTicket = getMaintenanceTicketFromId(maintenanceTicketId);
 
         return mapMaintenanceTicket(maintenanceTicket);
     }
@@ -162,8 +175,7 @@ public class MaintenanceTicketService {
     }
 
     public MaintenanceTicketResponse patchMaintenanceTicketById(Long maintenanceTicketId, UpdateMaintenanceTicketRequest maintenanceTicketRequest) {
-        MaintenanceTicket curMaintenanceTicket = getMaintenanceTicketFromId(
-                maintenanceTicketId);
+        MaintenanceTicket curMaintenanceTicket = getMaintenanceTicketFromId(maintenanceTicketId);
 
         if (maintenanceTicketRequest.getDescription() != null) {
             curMaintenanceTicket.setDescription(maintenanceTicketRequest.getDescription());

@@ -39,27 +39,18 @@ public class User implements UserDetails {
     )
     private Set<Role> userRoles = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
-    private UserInformation userInformation;
-
 
     //getter and setter
 
     public User() {
     }
 
+
     public User(String email, String password, Set<Role> userRoles) {
         this.email = email;
         this.password = password;
         this.userRoles = userRoles;
-    }
 
-    public User(String email, String password, Set<Role> userRoles, UserInformation userInformation) {
-        this.email = email;
-        this.password = password;
-        this.userRoles = userRoles;
-        this.userInformation = userInformation;
     }
 
     public int getId() {
@@ -77,10 +68,6 @@ public class User implements UserDetails {
     public void setEmail(String email) {
         this.email = email;
     }
-    public void removeUserInformation() {
-        this.userInformation = null;
-    }
-
 
 
     @Override
@@ -150,11 +137,5 @@ public class User implements UserDetails {
     }
 
 
-    public UserInformation getUserInformation() {
-        return userInformation;
-    }
 
-    public void setUserInformation(UserInformation userInformation) {
-        this.userInformation = userInformation;
-    }
 }
