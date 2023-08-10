@@ -1,3 +1,4 @@
+#file: noinspection ComposeUnknownValues,ComposeUnknownValues
 version: '3.8'
 services:
   maintenance-service-db-postgres:
@@ -80,7 +81,6 @@ services:
     image: openzipkin/zipkin
     ports:
       - "9411:9411"
-
   discovery-server:
     build:
       context: ./discovery-server
@@ -91,7 +91,6 @@ services:
       - zipkin
     expose:
       - "8761"
-
   authentication-service:
     build:
       context:  ./authentication-server-jwt
@@ -102,7 +101,6 @@ services:
       - "9012"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-
   api-gateway:
     build:
       context: ./api-gateway
@@ -117,7 +115,6 @@ services:
       - discovery-server
       - zipkin
       - authentication-service
-
   equipment-service:
     container_name: equipment-service
     build:
@@ -130,8 +127,7 @@ services:
       - equipment-service-db-mongo
       - api-gateway
     expose:
-      - "9090"
-
+      - "8090"
   maintenance-ticket-service:
     container_name: maintenance-ticket-service
     build:
@@ -147,7 +143,6 @@ services:
       - api-gateway
     expose:
       - "8081"
-
   progress-service:
     container_name: progress-service
     build:
@@ -161,7 +156,6 @@ services:
       - progress-service-db-postgres
     expose:
       - "8082"
-
   notification-service:
     container_name: notification-service
     build:
@@ -176,11 +170,42 @@ services:
       - zookeeper
     expose:
       - "12312"
+##prometheus setting and grafana ui setting
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    expose:
+      - "9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - progress-service
+      - equipment-service
+      - notification-service
+      - maintenance-ticket-service
 
-
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
 
 volumes:
   equipment-service-db:
   maintenance-ticket-db:
   progress-db:
   auth-server-db:
+  grafana-data:
