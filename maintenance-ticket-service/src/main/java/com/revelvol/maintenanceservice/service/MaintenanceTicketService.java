@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor // no need to autowired thanks to lombok
 @Slf4j
-
 //do i need transactional
 public class MaintenanceTicketService {
 
@@ -51,8 +50,7 @@ public class MaintenanceTicketService {
     }
 
     private Boolean batchCheckIsSkuValid(List<String> skuCodeList) {
-
-
+        // todo: fix webclient config does  not load properly on docker
         // Check tall List of SkuCode is valid and exist on the equipment service
         return webClientBuilder.build().get().uri("http://equipment-service/api/v1/equipments/sku",
                 uriBuilder -> uriBuilder.queryParam("skuCodes",
@@ -107,6 +105,7 @@ public class MaintenanceTicketService {
                 dto -> mapRequestEquipmentDtoToMaintenanceEquipmentItem(dto, maintenanceTicket)).toList();
 
         //check the list of maintenance equipment item have valid sku code
+
         checkEquipmentsItemListSkuCodeIsValid(maintenanceEquipmentItemList);
 
         //set each maintenance Equipment item to the maintenance ticket

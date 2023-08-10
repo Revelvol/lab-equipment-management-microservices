@@ -1,11 +1,12 @@
 package com.revelvol.config;
 
 import com.revelvol.event.MaintenanceTicketPlacedEventConsumer;
+import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -19,10 +20,13 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.HashMap;
 import java.util.Map;
 
+
 @Configuration
 @EnableKafka
 public class KafkaNotificationConfig {
-    private final String bootstrapServers ="localhost:29092";
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
@@ -30,7 +34,6 @@ public class KafkaNotificationConfig {
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         return new KafkaAdmin(configs);
     }
-
 
 
     private Map<String, Object> consumerConfigs() {

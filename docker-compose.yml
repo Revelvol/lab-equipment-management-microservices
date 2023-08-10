@@ -6,7 +6,7 @@ services:
     ports:
       - "5433:5433"
     expose:
-      - "5433" # Publishes 5433 to other containers but NOT to host machine
+      - "5433"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
@@ -37,7 +37,6 @@ services:
       - '27017:27017'
     volumes:
       - equipment-service-db:/data/db
-
   authentication-service-db-postgres:
     image: postgres:15
     restart: always
@@ -52,7 +51,6 @@ services:
     expose:
       - "5434"
     command: -p 5434
-
   zookeeper: #orchestrate kafka cluster
     image: confluentinc/cp-zookeeper:7.0.1
     container_name: zookeeper
@@ -61,7 +59,6 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 22181:2181
-
   kafka: #the broker
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -78,12 +75,110 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-
   zipkin:
     container_name: zipkin
     image: openzipkin/zipkin
     ports:
       - "9411:9411"
+
+  discovery-server:
+    build:
+      context: ./discovery-server
+    container_name: discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - zipkin
+    expose:
+      - "8761"
+
+  authentication-service:
+    build:
+      context:  ./authentication-server-jwt
+    container_name: authentication-service
+    depends_on:
+      - authentication-service-db-postgres
+    expose:
+      - "9012"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8079"
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - zipkin
+      - authentication-service
+
+  equipment-service:
+    container_name: equipment-service
+    build:
+      context: ./equipment-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - zipkin
+      - equipment-service-db-mongo
+      - api-gateway
+    expose:
+      - "9090"
+
+  maintenance-ticket-service:
+    container_name: maintenance-ticket-service
+    build:
+      context: ./maintenance-ticket-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - zipkin
+      - maintenance-service-db-postgres
+      - kafka
+      - zookeeper
+      - api-gateway
+    expose:
+      - "8081"
+
+  progress-service:
+    container_name: progress-service
+    build:
+      context: ./progress-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - zipkin
+      - api-gateway
+      - progress-service-db-postgres
+    expose:
+      - "8082"
+
+  notification-service:
+    container_name: notification-service
+    build:
+      context: ./notification-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - discovery-server
+      - zipkin
+      - api-gateway
+      - kafka
+      - zookeeper
+    expose:
+      - "12312"
+
+
+
 volumes:
   equipment-service-db:
   maintenance-ticket-db:
